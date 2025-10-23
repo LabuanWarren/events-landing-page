@@ -104,8 +104,6 @@ pnpm test          # Run Vitest tests
 Open `client/global.css` and `tailwind.config.ts` and add new tailwind colors.
 
 ### New API Route
-
-#### For Vercel Deployment (Production)
 1. **Optional**: Create a shared interface in `shared/api.ts`:
 ```typescript
 export interface MyRouteResponse {
@@ -114,29 +112,34 @@ export interface MyRouteResponse {
 }
 ```
 
-2. Create a serverless function in `api/my-endpoint.ts`:
+2. Create a new route handler in `server/routes/my-route.ts`:
 ```typescript
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MyRouteResponse } from '../shared/api';
+import { RequestHandler } from "express";
+import { MyRouteResponse } from "@shared/api"; // Optional: for type safety
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export const handleMyRoute: RequestHandler = (req, res) => {
   const response: MyRouteResponse = {
-    message: 'Hello from Vercel serverless function!'
+    message: 'Hello from my endpoint!'
   };
-  res.status(200).json(response);
-}
+  res.json(response);
+};
 ```
 
-3. Use in React components:
+3. Register the route in `server/index.ts`:
 ```typescript
-import { MyRouteResponse } from '@shared/api';
+import { handleMyRoute } from "./routes/my-route";
+
+// Add to the createServer function:
+app.get("/api/my-endpoint", handleMyRoute);
+```
+
+4. Use in React components with type safety:
+```typescript
+import { MyRouteResponse } from '@shared/api'; // Optional: for type safety
 
 const response = await fetch('/api/my-endpoint');
 const data: MyRouteResponse = await response.json();
 ```
-
-#### For Local Development (Optional)
-If you need the route in local development, also add it to `server/routes/` and register in `server/index.ts` following the Express pattern.
 
 ### New Page Route
 1. Create component in `client/pages/MyPage.tsx`
@@ -147,23 +150,9 @@ If you need the route in local development, also add it to `server/routes/` and 
 
 ## Production Deployment
 
-### Vercel (Recommended)
-This app is fully configured for Vercel deployment. See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for detailed instructions.
-
-**Quick Deploy:**
-1. Push your code to GitHub
-2. Import project in Vercel dashboard
-3. Vercel auto-detects configuration and deploys
-
-**API Routes for Vercel:**
-- Located in `/api` directory as serverless functions
-- Use `@vercel/node` types
-- Automatically available at `/api/*` endpoints
-
-### Other Options
 - **Standard**: `pnpm build`
 - **Binary**: Self-contained executables (Linux, macOS, Windows)
-- **Netlify**: Alternative cloud deployment option
+- **Cloud Deployment**: Use either Netlify or Vercel via their MCP integrations for easy deployment. Both providers work well with this starter template.
 
 ## Architecture Notes
 
